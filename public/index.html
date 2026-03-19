@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Система дежурств</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Система планирования дежурств</h1>
+      <p class="muted">Роли: менеджер / сотрудник</p>
+
+      <section id="auth-section" class="card">
+        <h2>Авторизация</h2>
+        <div class="row">
+          <form id="register-form" class="stack">
+            <h3>Регистрация</h3>
+            <input type="text" id="reg-username" placeholder="Логин" required />
+            <input type="password" id="reg-password" placeholder="Пароль" required />
+            <button type="submit">Зарегистрироваться</button>
+          </form>
+
+          <form id="login-form" class="stack">
+            <h3>Вход</h3>
+            <input type="text" id="login-username" placeholder="Логин" required />
+            <input type="password" id="login-password" placeholder="Пароль" required />
+            <button type="submit">Войти</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="session-section" class="card hidden">
+        <div class="row-space">
+          <div>
+            <h2 id="session-title"></h2>
+            <p id="session-subtitle" class="muted"></p>
+          </div>
+          <button id="logout-btn" class="danger">Выйти</button>
+        </div>
+      </section>
+
+      <section id="manager-section" class="card hidden">
+        <h2>Панель менеджера</h2>
+
+        <div class="row">
+          <div class="block">
+            <h3>Новые регистрации</h3>
+            <button id="refresh-pending-btn">Обновить</button>
+            <ul id="pending-users-list"></ul>
+          </div>
+
+          <div class="block">
+            <h3>Добавить зону</h3>
+            <form id="zone-form" class="stack">
+              <input type="text" id="zone-name" placeholder="Название зоны" required />
+              <textarea id="zone-description" placeholder="Описание"></textarea>
+              <textarea
+                id="zone-polygon"
+                placeholder='Polygon JSON, например: {"type":"Polygon","coordinates":[...]}'
+              ></textarea>
+              <button type="submit">Создать зону</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="block">
+            <h3>Назначить дежурство</h3>
+            <form id="duty-form" class="stack">
+              <select id="duty-employee" required></select>
+              <select id="duty-zone" required></select>
+              <input type="date" id="duty-date" required />
+              <input type="time" id="duty-start" required />
+              <input type="time" id="duty-end" required />
+              <button type="submit">Назначить</button>
+            </form>
+          </div>
+
+          <div class="block">
+            <h3>Отчёт по зоне</h3>
+            <form id="report-form" class="stack">
+              <select id="report-zone" required></select>
+              <input type="date" id="report-from" required />
+              <input type="date" id="report-to" required />
+              <button type="submit">Сформировать отчёт</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="block">
+          <h3>Таблица отчёта</h3>
+          <div id="report-table-wrap" class="table-wrap"></div>
+        </div>
+      </section>
+
+      <section id="employee-section" class="card hidden">
+        <h2>Панель сотрудника</h2>
+        <div class="row">
+          <div class="block">
+            <h3>Мои дежурства</h3>
+            <button id="refresh-duties-btn">Обновить</button>
+            <ul id="duties-list"></ul>
+          </div>
+
+          <div class="block">
+            <h3>Фиксация результата</h3>
+            <form id="result-form" class="stack">
+              <select id="result-duty" required></select>
+              <input type="datetime-local" id="result-observed-at" required />
+              <input type="text" id="result-brand" placeholder="Марка авто" required />
+              <input type="text" id="result-plate" placeholder="Гос. номер" required />
+              <input type="number" id="result-speed" placeholder="Скорость" step="0.1" required />
+              <label class="inline">
+                <input type="checkbox" id="result-overtake" />
+                Совершался обгон
+              </label>
+              <button type="submit">Сохранить результат</button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Лог</h2>
+        <pre id="log"></pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

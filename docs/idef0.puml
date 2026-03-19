@@ -1,0 +1,29 @@
+@startuml
+skinparam rectangle {
+  BorderColor #1f2937
+  FontColor #1f2937
+}
+
+title IDEF0 (контекст + декомпозиция A0/A1..A4)
+
+rectangle "A0\nУправление процессом\nдежурств и отчетности" as A0
+rectangle "Входы:\nЗаявки регистрации\nДанные дежурств\nРезультаты наблюдений" as I0
+rectangle "Управление:\nРегламент дежурств\nФункциональные требования" as C0
+rectangle "Механизмы:\nМенеджер\nСотрудник\nИС" as M0
+rectangle "Выходы:\nПодтвержденные сотрудники\nГрафик дежурств\nОтчеты" as O0
+
+I0 --> A0
+C0 -down-> A0
+M0 -up-> A0
+A0 --> O0
+
+rectangle "A1\nРегистрация и подтверждение\nсотрудников" as A1
+rectangle "A2\nУправление зонами\nдежурств" as A2
+rectangle "A3\nПланирование и назначение\nдежурств" as A3
+rectangle "A4\nФиксация результатов\nи построение отчетов" as A4
+
+A1 -right-> A2
+A2 -right-> A3
+A3 -right-> A4
+
+@enduml

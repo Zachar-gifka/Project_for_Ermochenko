@@ -1,0 +1,52 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "users" as users {
+  * id : INTEGER <<PK>>
+  --
+  username : TEXT <<UNIQUE>>
+  password_hash : TEXT
+  role : TEXT
+  is_approved : INTEGER
+  created_at : TEXT
+}
+
+entity "zones" as zones {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  description : TEXT
+  polygon_json : TEXT
+  created_at : TEXT
+}
+
+entity "duties" as duties {
+  * id : INTEGER <<PK>>
+  --
+  employee_id : INTEGER <<FK users.id>>
+  zone_id : INTEGER <<FK zones.id>>
+  duty_date : TEXT
+  start_time : TEXT
+  end_time : TEXT
+  created_at : TEXT
+}
+
+entity "duty_results" as duty_results {
+  * id : INTEGER <<PK>>
+  --
+  duty_id : INTEGER <<FK duties.id>>
+  employee_id : INTEGER <<FK users.id>>
+  observed_at : TEXT
+  car_brand : TEXT
+  plate_number : TEXT
+  speed : REAL
+  is_overtake : INTEGER
+  created_at : TEXT
+}
+
+users ||--o{ duties : assigned_to
+zones ||--o{ duties : in_zone
+duties ||--o{ duty_results : has_results
+users ||--o{ duty_results : records
+@enduml

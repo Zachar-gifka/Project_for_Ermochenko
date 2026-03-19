@@ -1,0 +1,36 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Менеджер" as Manager
+actor "Сотрудник" as Employee
+actor "Гость" as Guest
+
+rectangle "ИС планирования дежурств" {
+  usecase "Регистрация" as UC_Register
+  usecase "Вход в систему" as UC_Login
+  usecase "Просмотр\nновых регистраций" as UC_Pending
+  usecase "Подтверждение\nсотрудника" as UC_Approve
+  usecase "Управление\nзонами дежурств" as UC_Zones
+  usecase "Назначение дежурств" as UC_Assign
+  usecase "Просмотр своих\nдежурств" as UC_MyDuties
+  usecase "Фиксация результата\nдежурства" as UC_Result
+  usecase "Формирование отчета\nпо зоне и периоду" as UC_Report
+}
+
+Guest --> UC_Register
+Guest --> UC_Login
+Manager --> UC_Login
+Employee --> UC_Login
+
+Manager --> UC_Pending
+Manager --> UC_Approve
+Manager --> UC_Zones
+Manager --> UC_Assign
+Manager --> UC_Report
+
+Employee --> UC_MyDuties
+Employee --> UC_Result
+
+UC_Approve .> UC_Pending : <<include>>
+@enduml

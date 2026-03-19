@@ -1,0 +1,30 @@
+@startuml
+skinparam componentStyle rectangle
+
+node "Клиентское устройство\n(браузер)" as client {
+  artifact "Web UI\nHTML/CSS/JS" as webui
+}
+
+node "Сервер приложения\nNode.js + Express" as app {
+  component "REST API" as api
+  component "Auth (JWT)" as auth
+  component "Report Builder" as report
+}
+
+database "SQLite\n(database.sqlite)" as db
+
+webui --> api : HTTPS/HTTP JSON
+api --> auth : проверка токена
+api --> report : агрегирование данных
+api --> db : SQL (CRUD)
+
+cloud "Сторонние сервисы\n(опционально для 6+)" as ext {
+  component "Google OAuth"
+  component "Google Calendar API"
+  component "Maps API"
+  component "Google Sheets API"
+  component "Google Docs API"
+}
+
+api ..> ext : интеграции (план)
+@enduml

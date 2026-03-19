@@ -1,0 +1,16 @@
+{
+  "name": "duty-scheduling-system",
+  "version": "1.0.0",
+  "description": "Information system for planning employee duty schedules and processing duty results",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.7"
+  }
+}
