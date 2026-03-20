@@ -39,6 +39,13 @@ function get(sql, params = []) {
   });
 }
 
+async function ensureColumnExists(tableName, columnName, columnType) {
+  const columns = await all(`PRAGMA table_info(${tableName})`);
+  const exists = columns.some((c) => c.name === columnName);
+  if (exists) return;
+  await run(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnType}`);
+}
+
 async function initDb() {
   await run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -69,6 +76,7 @@ async function initDb() {
       duty_date TEXT NOT NULL,
       start_time TEXT NOT NULL,
       end_time TEXT NOT NULL,
+      calendar_event_id TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY(employee_id) REFERENCES users(id),
       FOREIGN KEY(zone_id) REFERENCES zones(id)
@@ -85,11 +93,24 @@ async function initDb() {
       plate_number TEXT NOT NULL,
       speed REAL NOT NULL,
       is_overtake INTEGER NOT NULL CHECK(is_overtake IN (0, 1)),
+      sheets_written INTEGER,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY(duty_id) REFERENCES duties(id),
       FOREIGN KEY(employee_id) REFERENCES users(id)
     )
   `);
+
+  // Fields for Google OAuth and external calendar integration.
+  // This MVP keeps them as plain strings in SQLite (for educational purposes only).
+  await ensureColumnExists("users", "google_sub", "TEXT");
+  await ensureColumnExists("users", "google_email", "TEXT");
+  await ensureColumnExists("users", "google_refresh_token", "TEXT");
+  await ensureColumnExists("users", "calendar_id", "TEXT");
+  await ensureColumnExists("users", "calendar_timezone", "TEXT");
+  await ensureColumnExists("users", "sheets_spreadsheet_id", "TEXT");
+  await ensureColumnExists("users", "sheets_sheet_name", "TEXT");
+  await ensureColumnExists("duties", "calendar_event_id", "TEXT");
+  await ensureColumnExists("duty_results", "sheets_written", "INTEGER");
 
   const manager = await get("SELECT id FROM users WHERE username = ?", ["manager"]);
   if (!manager) {

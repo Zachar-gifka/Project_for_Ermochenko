@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Система дежурств</title>
     <link rel="stylesheet" href="/styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"
+    />
   </head>
   <body>
     <main class="container">
@@ -27,6 +35,15 @@
             <input type="password" id="login-password" placeholder="Пароль" required />
             <button type="submit">Войти</button>
           </form>
+        </div>
+
+        <div class="stack" style="margin-top: 12px;">
+          <button id="google-login-btn" type="button" class="google">
+            Войти через Google
+          </button>
+          <p class="muted" style="margin: 0;">
+            Регистрация и авторизация сотрудника выполняются через Google OAuth.
+          </p>
         </div>
       </section>
 
@@ -59,6 +76,7 @@
                 id="zone-polygon"
                 placeholder='Polygon JSON, например: {"type":"Polygon","coordinates":[...]}'
               ></textarea>
+              <div id="zone-map" class="map"></div>
               <button type="submit">Создать зону</button>
             </form>
           </div>
@@ -84,6 +102,7 @@
               <input type="date" id="report-from" required />
               <input type="date" id="report-to" required />
               <button type="submit">Сформировать отчёт</button>
+              <button id="report-doc-btn" type="button">Сформировать Google Doc</button>
             </form>
           </div>
         </div>
@@ -127,6 +146,8 @@
       </section>
     </main>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
     <script src="/app.js"></script>
   </body>
 </html>

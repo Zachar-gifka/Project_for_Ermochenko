@@ -12,6 +12,23 @@ const sessionTitle = document.getElementById("session-title");
 const sessionSubtitle = document.getElementById("session-subtitle");
 const logNode = document.getElementById("log");
 
+// OAuth callback redirect:
+// backend redirects back to `/` as `/?token=...&user=...`
+// We capture the token/user, store them, and remove query params.
+try {
+  const params = new URLSearchParams(window.location.search);
+  const tokenFromUrl = params.get("token");
+  const userFromUrl = params.get("user");
+  if (tokenFromUrl && userFromUrl) {
+    // Ensure the JSON decoding happens correctly for URL-encoded value.
+    const parsedUser = JSON.parse(decodeURIComponent(userFromUrl));
+    setSession(tokenFromUrl, parsedUser);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+} catch (_) {
+  // ignore
+}
+
 function log(message, payload) {
   const line = `[${new Date().toLocaleTimeString()}] ${message}`;
   const body = payload ? `${line}\n${JSON.stringify(payload, null, 2)}\n` : `${line}\n`;
@@ -176,6 +193,81 @@ function renderReportTable(rows) {
   `;
 }
 
+function initZoneMap() {
+  const zoneMapEl = document.getElementById("zone-map");
+  const polygonEl = document.getElementById("zone-polygon");
+  if (!zoneMapEl || !polygonEl) return;
+
+  // Leaflet is loaded from CDN.
+  if (!window.L || !window.L.Draw) {
+    log("Leaflet/Leaflet.draw не загружены (проверьте интернет-доступ).");
+    return;
+  }
+
+  const defaultCenter = [55.751244, 37.618423]; // Moscow (approx)
+  const map = window.L.map("zone-map").setView(defaultCenter, 10);
+  window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  const drawnItems = window.L.featureGroup().addTo(map);
+
+  const drawControl = new window.L.Control.Draw({
+    draw: {
+      polygon: true,
+      polyline: false,
+      rectangle: false,
+      circle: false,
+      marker: false,
+      circlemarker: false
+    },
+    edit: {
+      featureGroup: drawnItems,
+      remove: true
+    }
+  });
+
+  map.addControl(drawControl);
+
+  function setPolygonFromLayer(layer) {
+    const gj = layer.toGeoJSON();
+    polygonEl.value = JSON.stringify(gj);
+    log("Полигон зоны выбран", { geojson: gj });
+  }
+
+  // Replace existing polygon on new create.
+  map.on(window.L.Draw.Event.CREATED, (e) => {
+    drawnItems.clearLayers();
+    drawnItems.addLayer(e.layer);
+    setPolygonFromLayer(e.layer);
+  });
+
+  map.on(window.L.Draw.Event.EDITED, (e) => {
+    const layers = e.layers.getLayers();
+    if (layers && layers.length > 0) setPolygonFromLayer(layers[0]);
+  });
+
+  map.on(window.L.Draw.Event.DELETED, () => {
+    polygonEl.value = "";
+    drawnItems.clearLayers();
+    log("Полигон очищен");
+  });
+
+  // If textarea already has JSON, render it.
+  try {
+    const existing = polygonEl.value ? JSON.parse(polygonEl.value) : null;
+    if (existing && existing.type) {
+      const layer = window.L.geoJSON(existing);
+      drawnItems.addLayer(layer);
+      const bounds = layer.getBounds();
+      if (bounds.isValid()) map.fitBounds(bounds);
+    }
+  } catch (_) {
+    // ignore invalid json
+  }
+}
+
 document.getElementById("register-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   try {
@@ -191,6 +283,13 @@ document.getElementById("register-form").addEventListener("submit", async (event
     log(`Ошибка регистрации: ${error.message}`);
   }
 });
+
+const googleLoginBtn = document.getElementById("google-login-btn");
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener("click", () => {
+    window.location.href = "/auth/google/login";
+  });
+}
 
 document.getElementById("login-form").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -282,6 +381,32 @@ document.getElementById("report-form").addEventListener("submit", async (event) 
   }
 });
 
+document.getElementById("report-doc-btn")?.addEventListener("click", async () => {
+  try {
+    const zoneId = Number(document.getElementById("report-zone").value);
+    const dateFrom = document.getElementById("report-from").value;
+    const dateTo = document.getElementById("report-to").value;
+    if (!zoneId || !dateFrom || !dateTo) {
+      log("Выберите зону и диапазон дат для Google Doc");
+      return;
+    }
+
+    const report = await api(
+      `/manager/reports/zone/google-doc?zoneId=${zoneId}&dateFrom=${encodeURIComponent(
+        dateFrom
+      )}&dateTo=${encodeURIComponent(dateTo)}`
+    );
+    log("Google Doc создан", report);
+
+    const wrap = document.getElementById("report-table-wrap");
+    if (wrap) {
+      wrap.innerHTML = `<p>Документ создан: <a href="${report.docUrl}" target="_blank" rel="noreferrer">открыть</a></p>`;
+    }
+  } catch (error) {
+    log(`Ошибка генерации Google Doc: ${error.message}`);
+  }
+});
+
 document.getElementById("refresh-duties-btn").addEventListener("click", async () => {
   try {
     await refreshEmployeeData();
@@ -316,5 +441,6 @@ document.getElementById("result-form").addEventListener("submit", async (event) 
 });
 
 render();
+initZoneMap();
 if (state.user?.role === "manager") refreshManagerData().catch((e) => log(e.message));
 if (state.user?.role === "employee") refreshEmployeeData().catch((e) => log(e.message));

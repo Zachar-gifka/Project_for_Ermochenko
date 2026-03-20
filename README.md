@@ -1,4 +1,4 @@
-﻿# Project_for_Ermochenko
+# Project_for_Ermochenko
 
 Duty scheduling information system for employees and managers.
 
@@ -116,10 +116,29 @@ Mermaid diagrams:
 
 - `docs/diagrams-mermaid.md`
 
-## Optional 6+ Grade Integrations
+## Google OAuth (6+ integrations - start)
 
-- Google OAuth;
-- external calendar sync;
-- map service for duty zones;
-- Google Forms / Google Sheets API import;
-- Google Docs API report generation.
+Google OAuth endpoints are implemented, but they require configuration via environment variables:
+
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI` (optional; defaults to `http://localhost:3000/auth/google/callback`)
+
+Login via the "Login with Google" button (frontend on `/`), then Google redirects back to the app.
+
+## 6+ Integrations Implemented (best-effort)
+
+- Google OAuth (JWT session is created after Google login).
+- External calendar sync (Google Calendar event created on duty assignment):
+  - endpoint: `POST /manager/duties`
+  - reminders: 1 day + 1 hour before duty start
+- Google Sheets API (results are appended on duty result submission):
+  - endpoint: `POST /employee/duty-results`
+- Google Docs API (manager can generate a report document):
+  - endpoint: `GET /manager/reports/zone/google-doc?zoneId=...&dateFrom=...&dateTo=...`
+  - frontend: "Generate Google Doc" button in the manager report form
+- Map service for duty zones (interactive polygon draw on manager zone creation):
+  - frontend uses Leaflet + OpenStreetMap
+  - polygon GeoJSON is sent as `polygon` to `POST /manager/zones`
+
+Note: calendar/sheets/docs sync are "best-effort". If Google credentials are not configured or user hasn't granted required scopes, the app still saves data internally.
